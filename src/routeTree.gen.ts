@@ -10,11 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ConstellationRouteImport } from './routes/constellation'
+import { Route as RealityTwinRouteImport } from './routes/reality-twin'
 import { Route as ApplicationsIdRouteImport } from './routes/applications.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConstellationRoute = ConstellationRouteImport.update({
+  id: '/constellation',
+  path: '/constellation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RealityTwinRoute = RealityTwinRouteImport.update({
+  id: '/reality-twin',
+  path: '/reality-twin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApplicationsIdRoute = ApplicationsIdRouteImport.update({
@@ -25,27 +37,36 @@ const ApplicationsIdRoute = ApplicationsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/constellation': typeof ConstellationRoute
+  '/reality-twin': typeof RealityTwinRoute
   '/applications/$id': typeof ApplicationsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/constellation': typeof ConstellationRoute
+  '/reality-twin': typeof RealityTwinRoute
   '/applications/$id': typeof ApplicationsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/constellation': typeof ConstellationRoute
+  '/reality-twin': typeof RealityTwinRoute
   '/applications/$id': typeof ApplicationsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/applications/$id'
+  fullPaths: '/' | '/constellation' | '/reality-twin' | '/applications/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/applications/$id'
-  id: '__root__' | '/' | '/applications/$id'
+  to: '/' | '/constellation' | '/reality-twin' | '/applications/$id'
+  id:
+    '__root__' | '/' | '/constellation' | '/reality-twin' | '/applications/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ConstellationRoute: typeof ConstellationRoute
+  RealityTwinRoute: typeof RealityTwinRoute
   ApplicationsIdRoute: typeof ApplicationsIdRoute
 }
 
@@ -56,6 +77,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/constellation': {
+      id: '/constellation'
+      path: '/constellation'
+      fullPath: '/constellation'
+      preLoaderRoute: typeof ConstellationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reality-twin': {
+      id: '/reality-twin'
+      path: '/reality-twin'
+      fullPath: '/reality-twin'
+      preLoaderRoute: typeof RealityTwinRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/applications/$id': {
@@ -70,6 +105,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ConstellationRoute: ConstellationRoute,
+  RealityTwinRoute: RealityTwinRoute,
   ApplicationsIdRoute: ApplicationsIdRoute,
 }
 export const routeTree = rootRouteImport

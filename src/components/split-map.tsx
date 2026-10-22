@@ -1,17 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import type { RealityCase } from "@/data/types";
-import { applications } from "@/data/synthetic";
+import { claimedPolygons, applications } from "@/data/synthetic";
 
 // Leaflet is loaded dynamically (browser-only) inside useEffect.
 export function SplitMap({ caseData }: { caseData: RealityCase }) {
   const claimedRef = useRef<HTMLDivElement>(null);
   const satelliteRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
-  const app = applications.find((a) => a.collegeId === caseData.collegeId);
-  const claimedPoly = (app as unknown as { claimedPolygon?: [number, number][] })?.claimedPolygon;
-  const claimed: [number, number][] =
-    claimedPoly ??
-    polygonFor(caseData.claimCoordinates, caseData.claimedBuiltUpSqft / caseData.floors, 900, 0.15);
+  const claimed = claimedPolygons.get(caseData.collegeId) ?? [];
   const observed = caseData.footprintPolygon;
 
   useEffect(() => {

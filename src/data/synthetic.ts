@@ -472,7 +472,9 @@ realityCases.forEach((rc) => {
   rc.gapScore = gapScoreOf(g, rc.overlapPct);
 });
 // expose claimed polygons for the map view
-const claimedPolygons = new Map(GAP_SPECS.map((g, gi) => [g.collegeId, polygonFor(colleges.find((c) => c.id === g.collegeId)!, g.claimed / g.floors, 900 + gi, 0.15)]));
+export const claimedPolygons: Map<string, [number, number][]> = new Map(
+  GAP_SPECS.map((g, gi) => [g.collegeId, polygonFor(colleges.find((c) => c.id === g.collegeId)!, g.claimed / g.floors, 900 + gi, 0.15)]),
+);
 
 // ---------------------------------------------------------------------------
 // Applications
