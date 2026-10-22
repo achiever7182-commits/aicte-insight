@@ -42,10 +42,12 @@
   --color-surface: var(--surface);
   --color-paper: var(--paper);
   --color-paper-ink: var(--paper-ink);
-  --color-paper-muted: var(--paper-muted);
-  --color-paper-line: var(--paper-line);
-  --color-stamp-red: var(--stamp-red);
-  --color-stamp-blue: var(--stamp-blue);
+  --color-saffron: #FF9933;
+  --color-ivory: #F5EFE6;
+  --color-gold: #F5C542;
+  --color-sand: #A89F91;
+  --color-emerald-custom: #10B981;
+  --color-crimson-custom: #E11D48;
   --font-display: "Space Grotesk", sans-serif;
   --font-sans: "IBM Plex Sans", sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
@@ -156,4 +158,18 @@
 @utility data-num {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+/* Suppress external Lovable watermarks and badges */
+#lovable-badge,
+[id*="lovable"],
+[class*="lovable-badge"],
+[class*="lovable-watermark"],
+[data-lovable],
+a[href*="lovable.dev"],
+iframe[src*="lovable"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }

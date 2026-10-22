@@ -18,7 +18,7 @@ export function fnv1a64(input: string): string {
 /** Flip `bits` lowest-distinct bits of a hex hash — simulates perceptual near-duplicates. */
 export function perturbHash(hex: string, bits: number, seed: number): string {
   let h = BigInt("0x" + hex);
-  let rng = seed;
+  let rng = BigInt(seed);
   for (let i = 0; i < bits; i++) {
     rng = (rng * 6364136223846793005n + 1442695040888963407n) & 0xffffffffffffffffn;
     const pos = (rng >> 33n) % 64n;

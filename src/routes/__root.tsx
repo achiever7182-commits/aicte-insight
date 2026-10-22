@@ -2,7 +2,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
-  NavLink,
   createRootRouteWithContext,
   useRouter,
   HeadContent,
@@ -26,8 +25,11 @@ import { AppProvider, useAppState } from "@/lib/store";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
+import { useRouterState } from "@tanstack/react-router";
+
 const NAV = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/", label: "Landing Experience", icon: ShieldCheck },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/constellation", label: "Fraud Constellation", icon: Network },
   { to: "/reality-twin", label: "Reality Twin", icon: MapPinned },
   { to: "/copilot", label: "Officer Copilot", icon: MessageSquareText },
@@ -104,7 +106,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      {
+        rel: "icon",
+        type: "image/svg+xml",
+        href: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF9933' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3Cpath d='m9 12 2 2 4-4'/%3E%3C/svg%3E",
+      },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -169,19 +175,20 @@ function AppFrame({ children }: { children: ReactNode }) {
         </Link>
         <nav className="mt-2 flex-1 space-y-1 px-3">
           {NAV.map(({ to, label, icon: Icon }) => (
-            <NavLink
+            <Link
               key={to}
               to={to}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                  isActive ? "bg-primary/12 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                )
-              }
+              activeOptions={{ exact: to === "/" }}
+              activeProps={{
+                className: "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors bg-primary/12 text-primary",
+              }}
+              inactiveProps={{
+                className: "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors text-muted-foreground hover:bg-muted hover:text-foreground",
+              }}
             >
               <Icon className="size-4" />
               {label}
-            </NavLink>
+            </Link>
           ))}
         </nav>
         <div className="space-y-3 border-t border-border p-4">
@@ -207,12 +214,21 @@ function AppFrame({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({
+    select: (s) => s.location.pathname,
+  });
+  const isLanding = pathname === "/";
+
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
-        <AppFrame>
+        {isLanding ? (
           <Outlet />
-        </AppFrame>
+        ) : (
+          <AppFrame>
+            <Outlet />
+          </AppFrame>
+        )}
       </AppProvider>
     </QueryClientProvider>
   );

@@ -27,6 +27,10 @@ dist-ssr
 .DS_Store
 *.suo
 *.ntvs*
-*.njsproj
-*.sln
 *.sw?
+
+# Backups and archives
+aicte-verifyai/
+aicte-verifyai-new/
+*.zip
+.lovable/
