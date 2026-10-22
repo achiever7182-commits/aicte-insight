@@ -8,7 +8,7 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard,
   FileSearch,
@@ -18,15 +18,19 @@ import {
   Gauge,
   History,
   ShieldCheck,
+  LogIn,
+  LogOut,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AppProvider, useAppState } from "@/lib/store";
+import { AppProvider, useAppState, type Role } from "@/lib/store";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 import { useRouterState } from "@tanstack/react-router";
 import { ElevenLabsVoiceWidget } from "@/components/ElevenLabsVoiceWidget";
+import { LoginModal } from "@/components/LoginModal";
 
 const NAV = [
   { to: "/", label: "Landing Experience", icon: ShieldCheck },
@@ -161,7 +165,9 @@ function RoleSwitcher() {
 }
 
 function AppFrame({ children }: { children: ReactNode }) {
-  const { roleLabel } = useAppState();
+  const { user, role, roleLabel } = useAppState();
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+
   return (
     <div className="flex min-h-screen">
       <aside className="fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-border bg-surface/80 backdrop-blur">
@@ -192,23 +198,73 @@ function AppFrame({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </nav>
-        <div className="space-y-3 border-t border-border p-4">
-          <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Viewing as · {roleLabel}</div>
-          <RoleSwitcher />
+
+        {/* User Persona & Role Switcher */}
+        <div className="space-y-3 border-t border-border p-4 bg-muted/20">
+          <div className="flex items-center justify-between">
+            <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Active Session</div>
+            <button
+              onClick={() => setLoginModalOpen(true)}
+              className="text-[10px] font-semibold text-primary hover:underline flex items-center gap-1"
+            >
+              <LogIn className="size-3" /> Switch
+            </button>
+          </div>
+
+          <div className="rounded-lg border border-border bg-card/60 p-2.5 space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="flex size-6 items-center justify-center rounded-full bg-primary/20 text-primary font-bold text-xs">
+                {user.name.charAt(0)}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="text-xs font-semibold text-foreground truncate">{user.name}</div>
+                <div className="text-[10px] text-muted-foreground truncate">{user.badge ?? roleLabel}</div>
+              </div>
+            </div>
+            {user.institution && (
+              <div className="text-[9px] text-muted-foreground/90 truncate border-t border-border/60 pt-1 mt-1 font-mono">
+                {user.institution}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <div className="text-[10px] text-muted-foreground mb-1">Quick Role Switch:</div>
+            <RoleSwitcher />
+          </div>
         </div>
       </aside>
+
       <div className="ml-60 flex min-h-screen w-[calc(100%-15rem)] flex-col">
-        <div className="sticky top-0 z-20 border-b border-border bg-background/85 px-6 py-2 backdrop-blur">
-          <p className="text-[11px] text-muted-foreground">
-            <ShieldCheck className="mr-1.5 inline size-3.5 text-primary" />
+        <div className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-background/85 px-6 py-2 backdrop-blur">
+          <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+            <ShieldCheck className="size-3.5 text-primary" />
             AI output is decision support. Final decisions rest with the competent AICTE authority.
           </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setLoginModalOpen(true)}
+              className="flex items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2.5 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition"
+            >
+              <User className="size-3 text-primary" />
+              <span className="font-medium text-foreground">{user.name}</span>
+              <span className="rounded bg-primary/15 px-1 py-0.2 text-[10px] font-mono text-primary uppercase">
+                {role}
+              </span>
+            </button>
+          </div>
         </div>
         <main className="flex-1 px-6 py-6">{children}</main>
         <footer className="border-t border-border px-6 py-3 text-[11px] text-muted-foreground">
           AICTE VerifyAI · Prototype · All institutions, documents and persons shown are synthetic demo data.
         </footer>
       </div>
+
+      <LoginModal
+        isOpen={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+        defaultRole={role}
+      />
     </div>
   );
 }

@@ -4,9 +4,13 @@ import { useProgress } from '@react-three/drei';
 import { SCENES, sceneAt } from '../config/cameraPath';
 import { progress } from '../scroll/engine';
 import { Link } from '@tanstack/react-router';
+import { LoginModal } from '@/components/LoginModal';
+import type { Role } from '@/lib/store';
 
 export function Overlay({ quality, setQuality, skip }: { quality: string; setQuality: () => void; skip: () => void }) {
   const [i, setI] = useState(0);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [defaultRole, setDefaultRole] = useState<Role>('officer');
   useEffect(() => {
     let r = 0;
     const f = () => {
@@ -38,13 +42,34 @@ export function Overlay({ quality, setQuality, skip }: { quality: string; setQua
             Copilot
           </Link>
         </div>
-        <Link
-          to="/dashboard"
-          className="border border-[#FF9933]/60 bg-[#FF9933] text-[#141210] font-bold px-4 py-2 text-sm rounded-lg shadow-[0_0_16px_rgba(255,153,51,0.35)] hover:shadow-[0_0_24px_#FF9933] hover:bg-[#FF9933]/90 transition"
-        >
-          Launch Dashboard &rarr;
-        </Link>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              setDefaultRole("officer");
+              setLoginOpen(true);
+            }}
+            className="flex items-center gap-1.5 rounded-lg border border-[#3E3832] bg-[#1C1917]/90 px-3.5 py-2 text-xs font-semibold text-[#F5EFE6] hover:border-[#FF9933]/50 hover:bg-[#2A2420] transition"
+          >
+            <span>Portal Login</span>
+            <span className="rounded bg-[#FF9933]/20 px-1.5 py-0.2 text-[10px] font-mono text-[#FF9933]">
+              3 Roles
+            </span>
+          </button>
+          <Link
+            to="/dashboard"
+            className="border border-[#FF9933]/60 bg-[#FF9933] text-[#141210] font-bold px-4 py-2 text-sm rounded-lg shadow-[0_0_16px_rgba(255,153,51,0.35)] hover:shadow-[0_0_24px_#FF9933] hover:bg-[#FF9933]/90 transition"
+          >
+            Launch Dashboard &rarr;
+          </Link>
+        </div>
       </nav>
+
+      <LoginModal
+        isOpen={loginOpen}
+        onClose={() => setLoginOpen(false)}
+        defaultRole={defaultRole}
+      />
 
       <div className="fixed left-6 md:left-12 bottom-12 z-10 max-w-xl pointer-events-none">
         <AnimatePresence mode="wait">
@@ -77,12 +102,29 @@ export function Overlay({ quality, setQuality, skip }: { quality: string; setQua
                   </span>
                   Scroll down to explore factory verification
                 </div>
-                <Link
-                  to="/dashboard"
-                  className="pointer-events-auto inline-flex items-center gap-2 rounded-lg bg-[#FF9933] px-4 py-2 text-sm font-bold text-[#141210] shadow-lg hover:bg-[#FF9933]/90 transition"
-                >
-                  Open Dashboard &rarr;
-                </Link>
+                <div className="flex flex-wrap gap-2 pointer-events-auto w-full pt-1">
+                  <span className="text-xs text-[#A89F91] w-full mb-0.5">Quick Demo Logins:</span>
+                  {(["officer", "admin", "college"] as const).map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => {
+                        setDefaultRole(r);
+                        setLoginOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-[#3E3832] bg-[#231F1C] px-3 py-1.5 text-xs font-semibold text-[#F5EFE6] hover:border-[#FF9933] hover:text-[#FF9933] transition"
+                    >
+                      <span className="capitalize">{r}</span>
+                      <span className="text-[10px] text-[#A89F91]">Demo</span>
+                    </button>
+                  ))}
+                  <Link
+                    to="/dashboard"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#FF9933] px-3.5 py-1.5 text-xs font-bold text-[#141210] hover:bg-[#FF9933]/90 transition ml-auto"
+                  >
+                    Open Dashboard &rarr;
+                  </Link>
+                </div>
               </div>
             )}
             {i > 0 && (
