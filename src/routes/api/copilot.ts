@@ -82,7 +82,7 @@ function buildDossier(app: NonNullable<ReturnType<typeof getApplication>>): stri
   lines.push(`Total: ${app.trust.total} (${app.trust.band} confidence band).`);
 
   lines.push("\n[AUDIT] Officer audit trail:");
-  lines.push(decisionTrail.length ? decisionTrail.join("\n") : "- No decisions recorded yet.");
+  lines.push("- Decisions are recorded by officers in the VerifyAI audit trail (approve / request evidence / override).");
 
   lines.push("\n[CHECKLIST] Category checklist:");
   for (const c of app.checklist) lines.push(`- ${c.label}: ${c.status}${c.note ? ` — ${c.note}` : ""}`);
@@ -113,6 +113,3 @@ function buildDossier(app: NonNullable<ReturnType<typeof getApplication>>): stri
   }
   return lines.join("\n");
 }
-
-// set from the request handler via closure-free mutable module state (per-request dossier)
-const decisionTrail: string[] = [];
