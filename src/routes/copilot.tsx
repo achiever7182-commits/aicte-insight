@@ -14,7 +14,7 @@ import {
 } from "@/components/ai-elements";
 import { applications, DEMO_APP_ID } from "@/data/synthetic";
 import { Panel } from "@/components/bits";
-import { FileText, Send } from "lucide-react";
+import { FileText, Send, Mic, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/copilot")({
   validateSearch: (search: Record<string, unknown>) => ({ app: (search.app as string) ?? DEMO_APP_ID }),
@@ -196,6 +196,53 @@ function CopilotPage() {
         </Panel>
 
         <div className="space-y-4">
+          <Panel title="AICTE Voice Officer Copilot">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Connect directly via real-time conversational audio to <strong className="text-foreground">AICTE Assist</strong>.
+              Conduct hands-free inquiries across institutional records, faculty affiliations, and regulatory guidelines.
+            </p>
+            <div className="mt-3.5 space-y-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const widget = document.querySelector("elevenlabs-convai") as any;
+                  if (widget && typeof widget.startConversation === "function") {
+                    widget.startConversation();
+                  } else {
+                    window.open(
+                      "https://elevenlabs.io/app/talk-to?agent_id=agent_6701m5h42hhge80akeb7w1fy2p4a&branch_id=agtbrch_4701m5h42jsjebnbd029z4pcc48t",
+                      "_blank",
+                      "noopener,noreferrer"
+                    );
+                  }
+                }}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#FF9933] px-4 py-2.5 text-sm font-bold text-slate-950 shadow-md hover:bg-[#FF9933]/90 transition-colors"
+              >
+                <Mic className="size-4" />
+                Start Voice Session
+              </button>
+              <a
+                href="https://elevenlabs.io/app/talk-to?agent_id=agent_6701m5h42hhge80akeb7w1fy2p4a&branch_id=agtbrch_4701m5h42jsjebnbd029z4pcc48t"
+                target="_blank"
+                rel="noreferrer"
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                Open in ElevenLabs Studio <ExternalLink className="size-3" />
+              </a>
+            </div>
+            <div className="mt-3 rounded-lg border border-border bg-muted/40 p-2.5 text-[11px] text-muted-foreground space-y-1">
+              <div className="font-mono text-foreground font-semibold flex items-center justify-between">
+                <span>Agent Status:</span>
+                <span className="inline-flex items-center gap-1 text-[#10B981] font-sans text-[10px]">
+                  <span className="size-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
+                  Active
+                </span>
+              </div>
+              <div>• Model: <span className="font-mono text-foreground">Eleven Conversational (Scribe v3)</span></div>
+              <div>• Agent ID: <span className="font-mono text-primary">agent_6701m5h42hhge80akeb7w1fy2p4a</span></div>
+            </div>
+          </Panel>
+
           <Panel title="Auto-drafted deficiency letter">
             <p className="text-sm text-muted-foreground">
               Drafts a formal deficiency letter from the application's flags — each deficiency cites its evidence. Review and edit before issuing; this is a

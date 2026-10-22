@@ -173,3 +173,12 @@ iframe[src*="lovable"] {
   opacity: 0 !important;
   pointer-events: none !important;
 }
+
+/* ElevenLabs ConvAI Assistant Widget Customization */
+elevenlabs-convai {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  z-index: 99999 !important;
+  --elevenlabs-convai-primary-color: #FF9933;
+}

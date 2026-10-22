@@ -26,6 +26,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 import { useRouterState } from "@tanstack/react-router";
+import { ElevenLabsVoiceWidget } from "@/components/ElevenLabsVoiceWidget";
 
 const NAV = [
   { to: "/", label: "Landing Experience", icon: ShieldCheck },
@@ -229,6 +230,7 @@ function RootComponent() {
             <Outlet />
           </AppFrame>
         )}
+        <ElevenLabsVoiceWidget />
       </AppProvider>
     </QueryClientProvider>
   );
