@@ -4,7 +4,9 @@ import { useProgress } from '@react-three/drei';
 import { SCENES, sceneAt } from '../config/cameraPath';
 import { progress } from '../scroll/engine';
 import { Link } from '@tanstack/react-router';
-import { ShieldCheck, ArrowDown, ChevronRight, Sparkles, SlidersHorizontal, Eye } from 'lucide-react';
+import { ShieldCheck, ArrowDown, ChevronRight, Sparkles, SlidersHorizontal, Eye, UserCheck } from 'lucide-react';
+import { LoginModal } from '@/components/LoginModal';
+import type { Role } from '@/lib/store';
 
 export function Overlay({
   quality,
@@ -18,6 +20,8 @@ export function Overlay({
   const [i, setI] = useState(0);
   const [currentProgress, setCurrentProgress] = useState(0);
   const [isPast3D, setIsPast3D] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [defaultRole, setDefaultRole] = useState<Role>('officer');
 
   useEffect(() => {
     let r = 0;
@@ -107,12 +111,28 @@ export function Overlay({
         {/* Action Buttons */}
         <div className="flex items-center gap-2.5">
           <button
+            type="button"
+            onClick={() => {
+              setDefaultRole("officer");
+              setLoginOpen(true);
+            }}
+            className="flex items-center gap-1.5 rounded-lg border border-[#3E3832] bg-[#1C1917]/90 px-3 py-1.5 text-xs font-semibold text-[#F5EFE6] hover:border-[#FF9933]/50 hover:bg-[#2A2420] transition"
+          >
+            <UserCheck className="size-3.5 text-[#FF9933]" />
+            <span className="hidden sm:inline">Portal Login</span>
+            <span className="rounded bg-[#FF9933]/20 px-1 py-0.2 text-[10px] font-mono text-[#FF9933]">
+              3 Roles
+            </span>
+          </button>
+
+          <button
             onClick={scrollToPortal}
             className="hidden sm:inline-flex items-center gap-1.5 border border-[#3E3832] bg-[#1A1714]/80 text-[#E6DEC8] hover:text-white hover:border-[#FF9933]/50 px-3 py-1.5 text-xs rounded-lg transition"
           >
             <ArrowDown className="size-3 text-[#FF9933]" />
             Deep Dive
           </button>
+
           <Link
             to="/dashboard"
             className="border border-[#FF9933]/80 bg-[#FF9933] text-[#0F0D0A] font-bold px-3.5 py-1.5 text-xs sm:text-sm rounded-lg shadow-[0_0_18px_rgba(255,153,51,0.35)] hover:shadow-[0_0_26px_#FF9933] hover:bg-[#FFB05C] transition flex items-center gap-1.5"
@@ -122,6 +142,13 @@ export function Overlay({
           </Link>
         </div>
       </header>
+
+      {/* Kaif's Login Modal */}
+      <LoginModal
+        isOpen={loginOpen}
+        onClose={() => setLoginOpen(false)}
+        defaultRole={defaultRole}
+      />
 
       {/* Floating 3D Telemetry HUD Card (Visible primarily during 3D scroll) */}
       <div
@@ -178,13 +205,28 @@ export function Overlay({
                     </span>
                     Scroll down through 3D conveyor
                   </div>
-                  <button
-                    onClick={scrollToPortal}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#3E3832] bg-[#1E1A16] px-3.5 py-1.5 text-xs font-semibold text-[#E6DEC8] hover:text-white hover:border-[#FF9933]/60 transition"
-                  >
-                    <span>Jump to Overview</span>
-                    <ArrowDown className="size-3 text-[#FF9933]" />
-                  </button>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDefaultRole("officer");
+                        setLoginOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-[#3E3832] bg-[#1E1A16] px-3.5 py-1.5 text-xs font-semibold text-[#E6DEC8] hover:text-[#FF9933] hover:border-[#FF9933]/60 transition"
+                    >
+                      <UserCheck className="size-3 text-[#FF9933]" />
+                      <span>Role Login</span>
+                    </button>
+
+                    <button
+                      onClick={scrollToPortal}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-[#3E3832] bg-[#1E1A16] px-3.5 py-1.5 text-xs font-semibold text-[#E6DEC8] hover:text-white hover:border-[#FF9933]/60 transition"
+                    >
+                      <span>Jump to Overview</span>
+                      <ArrowDown className="size-3 text-[#FF9933]" />
+                    </button>
+                  </div>
                 </>
               ) : (
                 <div className="flex flex-wrap items-center gap-2">

@@ -22,14 +22,18 @@ import {
   X,
   Radio,
   ExternalLink,
+  LogIn,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AppProvider, useAppState } from "@/lib/store";
+import { AppProvider, useAppState, type Role } from "@/lib/store";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 import { useRouterState } from "@tanstack/react-router";
+import { ElevenLabsVoiceWidget } from "@/components/ElevenLabsVoiceWidget";
+import { LoginModal } from "@/components/LoginModal";
 
 const NAV = [
   { to: "/", label: "Landing Experience", icon: ShieldCheck, badge: "3D" },
@@ -145,6 +149,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body className="min-h-screen antialiased bg-background text-foreground">
         {children}
+        <ElevenLabsVoiceWidget />
         <Scripts />
       </body>
     </html>
@@ -174,8 +179,9 @@ function RoleSwitcher() {
 }
 
 function AppFrame({ children }: { children: ReactNode }) {
-  const { roleLabel } = useAppState();
+  const { user, role, roleLabel } = useAppState();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
@@ -188,13 +194,22 @@ function AppFrame({ children }: { children: ReactNode }) {
           <span className="font-display font-bold text-sm tracking-tight">AICTE VerifyAI</span>
         </Link>
 
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="rounded-lg border border-border p-2 text-muted-foreground hover:text-foreground"
-          aria-label="Toggle navigation menu"
-        >
-          {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setLoginModalOpen(true)}
+            className="rounded-lg border border-border p-2 text-xs font-mono text-primary flex items-center gap-1"
+          >
+            <User className="size-3.5" />
+            <span className="capitalize">{role}</span>
+          </button>
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="rounded-lg border border-border p-2 text-muted-foreground hover:text-foreground"
+            aria-label="Toggle navigation menu"
+          >
+            {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          </button>
+        </div>
       </header>
 
       {/* Backdrop for mobile drawer */}
@@ -271,13 +286,39 @@ function AppFrame({ children }: { children: ReactNode }) {
           ))}
         </nav>
 
-        {/* Role Switcher & System Telemetry */}
+        {/* User Session Profile & Role Switcher */}
         <div className="space-y-3 border-t border-border/80 p-4 bg-[#0D0B0A]/70">
-          <div className="flex items-center justify-between text-[10px] uppercase font-mono tracking-wider text-muted-foreground">
-            <span>Viewing As</span>
-            <span className="text-primary font-bold">{roleLabel}</span>
+          <div className="flex items-center justify-between">
+            <div className="text-[10px] uppercase font-mono tracking-widest text-muted-foreground">Active Session</div>
+            <button
+              onClick={() => setLoginModalOpen(true)}
+              className="text-[10px] font-semibold text-primary hover:underline flex items-center gap-1 font-mono"
+            >
+              <LogIn className="size-3" /> Persona
+            </button>
           </div>
-          <RoleSwitcher />
+
+          <div className="rounded-xl border border-border/70 bg-[#161310] p-2.5 space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="flex size-7 items-center justify-center rounded-full bg-primary/20 text-primary font-bold text-xs">
+                {user.name.charAt(0)}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="text-xs font-semibold text-foreground truncate">{user.name}</div>
+                <div className="text-[10px] text-muted-foreground truncate">{user.badge ?? roleLabel}</div>
+              </div>
+            </div>
+            {user.institution && (
+              <div className="text-[9px] text-muted-foreground/85 truncate border-t border-border/50 pt-1 mt-1 font-mono">
+                {user.institution}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <div className="text-[10px] text-muted-foreground mb-1 font-mono">Role Selector:</div>
+            <RoleSwitcher />
+          </div>
 
           <div className="pt-2 border-t border-border/50 text-[10px] font-mono text-muted-foreground flex items-center justify-between">
             <span className="flex items-center gap-1.5">
@@ -301,10 +342,23 @@ function AppFrame({ children }: { children: ReactNode }) {
             </span>
           </p>
 
-          <div className="hidden md:flex items-center gap-4 text-[11px] font-mono text-muted-foreground">
-            <span>Server: IN-DEL-01</span>
-            <span>·</span>
-            <span className="text-primary">APH 2025-26</span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setLoginModalOpen(true)}
+              className="flex items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-2.5 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition"
+            >
+              <User className="size-3 text-primary" />
+              <span className="font-medium text-foreground truncate max-w-32">{user.name}</span>
+              <span className="rounded bg-primary/15 px-1 py-0.2 text-[10px] font-mono text-primary uppercase">
+                {role}
+              </span>
+            </button>
+
+            <div className="hidden md:flex items-center gap-4 text-[11px] font-mono text-muted-foreground">
+              <span>Server: IN-DEL-01</span>
+              <span>·</span>
+              <span className="text-primary">APH 2025-26</span>
+            </div>
           </div>
         </div>
 
@@ -321,6 +375,13 @@ function AppFrame({ children }: { children: ReactNode }) {
           </div>
         </footer>
       </div>
+
+      {/* Kaif's LoginModal Component */}
+      <LoginModal
+        isOpen={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+        defaultRole={role}
+      />
     </div>
   );
 }

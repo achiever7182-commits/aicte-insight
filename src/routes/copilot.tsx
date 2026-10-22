@@ -26,6 +26,8 @@ import {
   ArrowUpRight,
   Bot,
   User,
+  Mic,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -39,7 +41,7 @@ export const Route = createFileRoute("/copilot")({
       {
         name: "description",
         content:
-          "AI decision-support copilot grounded in application evidence with verifiable legal citations and automated deficiency memo drafting.",
+          "AI decision-support copilot grounded in application evidence with verifiable legal citations, ElevenLabs voice integration, and automated deficiency memo drafting.",
       },
       { property: "og:title", content: "Officer Copilot — AICTE VerifyAI" },
       {
@@ -276,7 +278,7 @@ All India Council for Technical Education`;
           </div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold">Officer Copilot</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            AI review assistant grounded in statutory filings with explicit citations and automated deficiency memo drafting.
+            AI review assistant grounded in statutory filings with explicit citations, ElevenLabs voice support, and automated deficiency memo drafting.
           </p>
         </div>
 
@@ -432,8 +434,58 @@ All India Council for Technical Education`;
           </div>
         </Panel>
 
-        {/* Right Column: Automated Deficiency Memo Tool & Statutory Guardrail */}
+        {/* Right Column: Voice Copilot + Automated Deficiency Memo */}
         <div className="space-y-4">
+          {/* Kaif's ElevenLabs Voice Widget Panel */}
+          <Panel title="AICTE Voice Officer Copilot">
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              Connect directly via real-time conversational audio to <strong className="text-foreground">AICTE Assist</strong>.
+              Conduct hands-free inquiries across institutional records, faculty affiliations, and regulatory guidelines.
+            </p>
+            <div className="mt-3.5 space-y-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const widget = document.querySelector("elevenlabs-convai") as any;
+                  if (widget && typeof widget.startConversation === "function") {
+                    widget.startConversation();
+                  } else {
+                    window.open(
+                      "https://elevenlabs.io/app/talk-to?agent_id=agent_6701m5h42hhge80akeb7w1fy2p4a&branch_id=agtbrch_4701m5h42jsjebnbd029z4pcc48t",
+                      "_blank",
+                      "noopener,noreferrer"
+                    );
+                  }
+                }}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#FF9933] px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-950 shadow-md hover:bg-[#FFB05C] transition-colors"
+              >
+                <Mic className="size-4" />
+                <span>Start Voice Session</span>
+              </button>
+              <a
+                href="https://elevenlabs.io/app/talk-to?agent_id=agent_6701m5h42hhge80akeb7w1fy2p4a&branch_id=agtbrch_4701m5h42jsjebnbd029z4pcc48t"
+                target="_blank"
+                rel="noreferrer"
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-muted/30 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                <span>Open in ElevenLabs Studio</span>
+                <ExternalLink className="size-3" />
+              </a>
+            </div>
+            <div className="mt-3 rounded-xl border border-border bg-muted/40 p-2.5 text-[11px] text-muted-foreground space-y-1">
+              <div className="font-mono text-foreground font-semibold flex items-center justify-between">
+                <span>Agent Status:</span>
+                <span className="inline-flex items-center gap-1 text-[#10B981] font-sans text-[10px]">
+                  <span className="size-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
+                  Active
+                </span>
+              </div>
+              <div>• Model: <span className="font-mono text-foreground">Eleven Conversational (Scribe v3)</span></div>
+              <div>• Agent ID: <span className="font-mono text-primary">agent_6701m5h42hhge80akeb7w1fy2p4a</span></div>
+            </div>
+          </Panel>
+
+          {/* Automated Deficiency Memo Tool */}
           <Panel
             title="Automated Deficiency Notice"
             action={
@@ -477,7 +529,7 @@ All India Council for Technical Education`;
 
           {/* Statutory AI Guardrail Box */}
           <Panel title="AICTE Regulatory Guardrails">
-            <div className="space-y-2.5 text-xs text-muted-foreground leading-relaxed">
+            <div className="space-y-2 text-xs text-muted-foreground leading-relaxed">
               <p>
                 <strong className="text-foreground">Evidentiary Grounding:</strong> Copilot answers are strictly
                 constrained to facts verified in the application dossier. It refuses speculative accusations of fraud.

@@ -4,6 +4,46 @@ import type { AuditEntry } from "@/data/types";
 
 export type Role = "officer" | "admin" | "college";
 
+export interface UserSession {
+  role: Role;
+  name: string;
+  email: string;
+  institution?: string;
+  badge?: string;
+  avatarSeed?: string;
+  isDemo?: boolean;
+}
+
+export const DEMO_PROFILES: Record<Role, UserSession> = {
+  officer: {
+    role: "officer",
+    name: "Dr. R. Iyer",
+    email: "r.iyer@aicte-india.org",
+    badge: "Senior Verification Officer (Western Region)",
+    institution: "AICTE Regional Office, Mumbai",
+    avatarSeed: "iyer",
+    isDemo: true,
+  },
+  admin: {
+    role: "admin",
+    name: "Dr. Sunita Deshmukh",
+    email: "admin.approval@aicte-india.org",
+    badge: "Chief Approval Bureau Admin",
+    institution: "AICTE HQ, New Delhi",
+    avatarSeed: "sunita",
+    isDemo: true,
+  },
+  college: {
+    role: "college",
+    name: "Prof. Arvind Kulkarni",
+    email: "principal@sanmati-tech.edu.in",
+    badge: "Principal / Authorized Representative",
+    institution: "Sanmati Institute of Technology & Management (C07)",
+    avatarSeed: "arvind",
+    isDemo: true,
+  },
+};
+
 const ROLE_LABEL: Record<Role, string> = {
   officer: "Review Officer",
   admin: "Administrator",
@@ -12,7 +52,12 @@ const ROLE_LABEL: Record<Role, string> = {
 
 interface AppState {
   role: Role;
+  user: UserSession;
   setRole: (r: Role) => void;
+  setUser: (u: UserSession) => void;
+  loginAs: (role: Role, custom?: Partial<UserSession>) => void;
+  logout: () => void;
+  isAuthenticated: boolean;
   roleLabel: string;
   audit: AuditEntry[];
   loadingAudit: boolean;
@@ -29,22 +74,58 @@ interface AppState {
 const AppCtx = createContext<AppState | null>(null);
 
 const LOCAL_KEY = "verifyai-audit-cache";
+const LOCAL_USER_KEY = "verifyai-user-session";
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [role, setRoleState] = useState<Role>(() => {
-    if (typeof window === "undefined") return "officer";
-    return (window.localStorage.getItem("verifyai-role") as Role) || "officer";
+  const [user, setUserState] = useState<UserSession>(() => {
+    if (typeof window === "undefined") return DEMO_PROFILES.officer;
+    try {
+      const saved = window.localStorage.getItem(LOCAL_USER_KEY);
+      if (saved) return JSON.parse(saved) as UserSession;
+    } catch {
+      /* ignore */
+    }
+    const savedRole = (window.localStorage.getItem("verifyai-role") as Role) || "officer";
+    return DEMO_PROFILES[savedRole] ?? DEMO_PROFILES.officer;
   });
+
   const [audit, setAudit] = useState<AuditEntry[]>([]);
   const [loadingAudit, setLoadingAudit] = useState(true);
   const [dbAvailable, setDbAvailable] = useState(true);
 
   useEffect(() => {
-    window.localStorage.setItem("verifyai-role", role);
-  }, [role]);
+    window.localStorage.setItem("verifyai-role", user.role);
+    window.localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(user));
+  }, [user]);
+
+  const setRole = useCallback((newRole: Role) => {
+    setUserState((prev) => {
+      const profile = DEMO_PROFILES[newRole];
+      return {
+        ...profile,
+        // preserve custom email/name if not a switch between different demo personas
+        name: prev.role === newRole ? prev.name : profile.name,
+        email: prev.role === newRole ? prev.email : profile.email,
+      };
+    });
+  }, []);
+
+  const loginAs = useCallback((targetRole: Role, custom?: Partial<UserSession>) => {
+    const base = DEMO_PROFILES[targetRole];
+    const finalSession: UserSession = {
+      ...base,
+      ...custom,
+      role: targetRole,
+    };
+    setUserState(finalSession);
+  }, []);
+
+  const logout = useCallback(() => {
+    setUserState(DEMO_PROFILES.officer);
+  }, []);
 
   const loadAudit = useCallback(async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("audit_log")
       .select("*")
       .order("created_at", { ascending: false })
@@ -72,16 +153,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const logDecision = useCallback<AppState["logDecision"]>(
     async ({ applicationId, applicationLabel, action, detail }) => {
-      const actor = role === "officer" ? "Officer R. Iyer" : role === "admin" ? "Admin (registry)" : "College User";
+      const actor = `${user.name} (${ROLE_LABEL[user.role]})`;
       const entry = {
         actor,
-        role,
+        role: user.role,
         action,
         application_id: applicationId,
         application_label: applicationLabel,
         detail: detail ?? {},
       };
-      const { error } = await supabase.from("audit_log").insert(entry);
+      const { error } = await (supabase as any).from("audit_log").insert(entry);
       if (error) {
         setDbAvailable(false);
         const local: AuditEntry = {
@@ -97,7 +178,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         void loadAudit();
       }
     },
-    [role, loadAudit],
+    [user, loadAudit],
   );
 
   const decisionFor = useCallback(
@@ -109,8 +190,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ role, setRole: setRoleState, roleLabel: ROLE_LABEL[role], audit, loadingAudit, decisionFor, logDecision, dbAvailable }),
-    [role, audit, loadingAudit, decisionFor, logDecision, dbAvailable],
+    () => ({
+      role: user.role,
+      user,
+      setRole,
+      setUser: setUserState,
+      loginAs,
+      logout,
+      isAuthenticated: true,
+      roleLabel: ROLE_LABEL[user.role],
+      audit,
+      loadingAudit,
+      decisionFor,
+      logDecision,
+      dbAvailable,
+    }),
+    [user, setRole, loginAs, logout, audit, loadingAudit, decisionFor, logDecision, dbAvailable],
   );
 
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;
