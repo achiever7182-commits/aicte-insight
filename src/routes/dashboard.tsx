@@ -28,10 +28,12 @@ import {
   Flame,
   Scale,
   Sparkles,
+  PlusCircle,
 } from "lucide-react";
-import { applications, constellation, realityCaseList, DEMO_APP_ID } from "@/data/synthetic";
+import { constellation, realityCaseList, DEMO_APP_ID } from "@/data/synthetic";
 import { Panel, bandColor } from "@/components/bits";
 import { useAppState } from "@/lib/store";
+import { AddCollegeModal } from "@/components/AddCollegeModal";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard")({
@@ -56,11 +58,11 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function Dashboard() {
-  const { role } = useAppState();
+  const { role, applications } = useAppState();
+  const [addCollegeOpen, setAddCollegeOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTab, setFilterTab] = useState<"all" | "flagged" | "low" | "medium" | "high" | "rings">("all");
   const [sortBy, setSortBy] = useState<"trust_asc" | "trust_desc" | "flags">("trust_asc");
-
   const visible =
     role === "college" ? applications.filter((a) => a.collegeId === "C07") : applications;
 
@@ -148,6 +150,14 @@ function Dashboard() {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setAddCollegeOpen(true)}
+            className="flex items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2.5 text-xs sm:text-sm font-bold text-primary transition hover:bg-primary/20 shadow-sm"
+          >
+            <PlusCircle className="size-4" />
+            <span>Add College</span>
+          </button>
           <Link
             to="/applications/$id"
             params={{ id: DEMO_APP_ID }}
@@ -430,6 +440,7 @@ function Dashboard() {
                     No applications matched your filter query.
                   </td>
                 </tr>
+<<<<<<< HEAD
               ) : (
                 filteredApps.map((a) => (
                   <tr key={a.id} className="border-b border-border/50 hover:bg-muted/40 transition">
@@ -508,6 +519,11 @@ function Dashboard() {
           </table>
         </div>
       </Panel>
+
+      <AddCollegeModal
+        isOpen={addCollegeOpen}
+        onClose={() => setAddCollegeOpen(false)}
+      />
     </div>
   );
 }

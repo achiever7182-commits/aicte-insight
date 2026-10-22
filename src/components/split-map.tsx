@@ -26,11 +26,28 @@ export function SplitMap({ caseData }: { caseData: RealityCase }) {
           color: string,
           tiles: string,
           attribution: string,
+          options: { maxZoom?: number; maxNativeZoom?: number; subdomains?: string[] } = {},
         ) => {
           const map = L.map(el, { scrollWheelZoom: false, attributionControl: true });
-          L.tileLayer(tiles, { maxZoom: 19, attribution }).addTo(map);
-          const layer = L.polygon(poly, { color, weight: 2, fillColor: color, fillOpacity: 0.25 }).addTo(map);
-          map.fitBounds(layer.getBounds().pad(0.35));
+          L.tileLayer(tiles, {
+            maxZoom: options.maxZoom ?? 19,
+            maxNativeZoom: options.maxNativeZoom ?? 18,
+            subdomains: options.subdomains ?? ["a", "b", "c"],
+            attribution,
+          }).addTo(map);
+
+          if (poly && poly.length > 0) {
+            const layer = L.polygon(poly, {
+              color,
+              weight: 2.5,
+              fillColor: color,
+              fillOpacity: 0.28,
+            }).addTo(map);
+            map.fitBounds(layer.getBounds().pad(0.35), { maxZoom: 17 });
+          } else {
+            map.setView(center, 16);
+          }
+
           return map;
         };
 
@@ -39,20 +56,25 @@ export function SplitMap({ caseData }: { caseData: RealityCase }) {
           claimed,
           "var(--primary)",
           "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-          "© OpenStreetMap",
+          "© OpenStreetMap contributors",
+          { maxZoom: 19, maxNativeZoom: 19 },
         );
+
+        // Esri satellite imagery only provides imagery up to level 17-18 in many locations in India.
+        // Setting maxNativeZoom: 18 prevents Esri from showing "Map data not yet available" tiles when zooming in.
         const m2 = make(
           satelliteRef.current,
           observed,
           "var(--destructive)",
           "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
           "Esri World Imagery",
+          { maxZoom: 19, maxNativeZoom: 18 },
         );
         maps = [m1 as unknown as { remove(): void }, m2 as unknown as { remove(): void }];
         setTimeout(() => {
           m1.invalidateSize();
           m2.invalidateSize();
-        }, 150);
+        }, 200);
       } catch (e) {
         setError("Map tiles could not be loaded in this environment.");
       }

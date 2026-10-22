@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ShieldCheck, UserCheck, Building2, ShieldAlert, ArrowRight, CheckCircle2, Lock, Sparkles, KeyRound } from "lucide-react";
+import { ShieldCheck, UserCheck, Building2, ShieldAlert, ArrowRight, CheckCircle2, Lock, Sparkles, KeyRound, AlertCircle } from "lucide-react";
 import { useAppState, type Role, DEMO_PROFILES } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 interface LoginModalProps {
@@ -16,10 +18,13 @@ export function LoginModal({ isOpen, onClose, defaultRole = "officer" }: LoginMo
   const [activeTab, setActiveTab] = useState<Role>(defaultRole);
 
   // Form states for manual credential entry
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -27,28 +32,93 @@ export function LoginModal({ isOpen, onClose, defaultRole = "officer" }: LoginMo
 
   const handleRoleSelect = (role: Role) => {
     setActiveTab(role);
-    setEmail(DEMO_PROFILES[role].email);
-    setPassword("••••••••••••");
+    setAuthError(null);
+    if (!isSignUp) {
+      setEmail(DEMO_PROFILES[role].email);
+      setPassword("••••••••••••");
+    }
   };
 
   const handleDemoQuickLogin = (role: Role) => {
     loginAs(role);
+    toast.success(`Logged in as demo persona: ${DEMO_PROFILES[role].name}`);
     onClose();
     navigate({ to: "/dashboard" });
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
-      loginAs(activeTab, {
-        email: email || currentDemo.email,
-        isDemo: false,
-      });
+    setAuthError(null);
+
+    const targetEmail = (email || currentDemo.email).trim();
+
+    try {
+      if (isSignUp) {
+        // Sign Up with Supabase Auth
+        const { data, error } = await supabase.auth.signUp({
+          email: targetEmail,
+          password: password,
+          options: {
+            data: {
+              role: activeTab,
+              full_name: fullName.trim() || targetEmail.split("@")[0],
+              badge: activeTab === "admin" ? "Central Administrator" : activeTab === "college" ? "Institutional Representative" : "Verification Scrutiny Officer",
+            },
+          },
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        toast.success("Account created successfully!");
+        if (data.session) {
+          loginAs(activeTab, {
+            email: targetEmail,
+            name: fullName.trim() || targetEmail.split("@")[0],
+            isDemo: false,
+          });
+          onClose();
+          navigate({ to: "/dashboard" });
+        } else {
+          toast.info("Check your email for the confirmation link, or sign in if email confirmation is disabled.");
+        }
+      } else {
+        // Sign In with Supabase Auth
+        // If password is demo dots, fallback gracefully to instant persona
+        if (password === "••••••••••••" || !password) {
+          loginAs(activeTab, {
+            email: targetEmail,
+            isDemo: false,
+          });
+          toast.success(`Authenticated as ${ROLE_LABEL_LOCAL[activeTab]}`);
+          onClose();
+          navigate({ to: "/dashboard" });
+          return;
+        }
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: targetEmail,
+          password: password,
+        });
+
+        if (error) {
+          // If auth fails against live DB (e.g. user not created yet in Supabase Auth), offer clarity
+          throw error;
+        }
+
+        toast.success("Live Supabase login successful!");
+        onClose();
+        navigate({ to: "/dashboard" });
+      }
+    } catch (err: any) {
+      console.warn("Supabase Auth notice:", err.message);
+      setAuthError(err.message || "Authentication failed. Check credentials or use Instant Demo.");
+      toast.error(err.message || "Authentication failed");
+    } finally {
       setIsSubmitting(false);
-      onClose();
-      navigate({ to: "/dashboard" });
-    }, 450);
+    }
   };
 
   const ROLE_CONFIG: Record<
@@ -210,18 +280,51 @@ export function LoginModal({ isOpen, onClose, defaultRole = "officer" }: LoginMo
           </button>
         </div>
 
-        {/* Separator */}
-        <div className="relative my-4 flex items-center justify-center">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-[#2C2723]" />
+        {/* Separator & Auth Mode Switch */}
+        <div className="relative my-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-mono text-[#A89F91] uppercase tracking-wider">
+              {isSignUp ? "Create Supabase Account" : "Sign In With Credentials"}
+            </span>
           </div>
-          <div className="relative bg-[#141210] px-3 text-[11px] font-mono text-[#A89F91] uppercase tracking-wider">
-            Or Sign In With Credentials
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setIsSignUp(!isSignUp);
+              setAuthError(null);
+            }}
+            className="text-xs font-semibold text-[#FF9933] hover:underline"
+          >
+            {isSignUp ? "Already have an account? Sign In" : "Need an account? Sign Up"}
+          </button>
         </div>
+
+        {/* Error notification banner if any */}
+        {authError && (
+          <div className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 p-2.5 flex items-start gap-2 text-xs text-red-300">
+            <AlertCircle className="size-4 shrink-0 mt-0.5 text-red-400" />
+            <div className="leading-snug">{authError}</div>
+          </div>
+        )}
 
         {/* Standard Credentials Form */}
         <form onSubmit={handleFormSubmit} className="space-y-3.5">
+          {isSignUp && (
+            <div>
+              <label className="block text-xs font-medium text-[#D6CEBF] mb-1">
+                Full Name / Officer Designation
+              </label>
+              <input
+                type="text"
+                required={isSignUp}
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Dr. Rajesh Sharma"
+                className="w-full rounded-lg border border-[#3E3832] bg-[#1B1815] px-3.5 py-2 text-xs text-[#F5EFE6] outline-none placeholder:text-[#6F675D] focus:border-[#FF9933] focus:ring-1 focus:ring-[#FF9933]"
+              />
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-medium text-[#D6CEBF] mb-1">
               Official Email / AICTE ID
@@ -230,7 +333,7 @@ export function LoginModal({ isOpen, onClose, defaultRole = "officer" }: LoginMo
               <input
                 type="email"
                 required
-                value={email || currentDemo.email}
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={currentDemo.email}
                 className="w-full rounded-lg border border-[#3E3832] bg-[#1B1815] px-3.5 py-2 text-xs text-[#F5EFE6] outline-none placeholder:text-[#6F675D] focus:border-[#FF9933] focus:ring-1 focus:ring-[#FF9933]"
@@ -241,19 +344,21 @@ export function LoginModal({ isOpen, onClose, defaultRole = "officer" }: LoginMo
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="block text-xs font-medium text-[#D6CEBF]">
-                Secure Password / Token
+                Secure Password
               </label>
-              <span className="text-[10px] text-[#FF9933]/90 hover:underline cursor-pointer">
-                Forgot token?
-              </span>
+              {!isSignUp && (
+                <span className="text-[10px] text-[#FF9933]/90 hover:underline cursor-pointer">
+                  Forgot token?
+                </span>
+              )}
             </div>
             <div className="relative">
               <input
                 type="password"
                 required
-                value={password || "aicte2026demo"}
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
+                placeholder={isSignUp ? "Minimum 6 characters" : "••••••••••••"}
                 className="w-full rounded-lg border border-[#3E3832] bg-[#1B1815] px-3.5 py-2 text-xs text-[#F5EFE6] outline-none placeholder:text-[#6F675D] focus:border-[#FF9933] focus:ring-1 focus:ring-[#FF9933]"
               />
             </div>
@@ -280,7 +385,13 @@ export function LoginModal({ isOpen, onClose, defaultRole = "officer" }: LoginMo
               disabled={isSubmitting}
               className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg border border-[#FF9933] bg-[#FF9933] px-4 py-2.5 text-xs font-bold text-slate-950 hover:bg-[#FF9933]/90 transition disabled:opacity-50"
             >
-              {isSubmitting ? "Authenticating..." : `Sign in as ${ROLE_LABEL_LOCAL[activeTab]}`}
+              {isSubmitting
+                ? isSignUp
+                  ? "Creating Account..."
+                  : "Authenticating..."
+                : isSignUp
+                  ? `Create ${ROLE_LABEL_LOCAL[activeTab]} Account`
+                  : `Sign in as ${ROLE_LABEL_LOCAL[activeTab]}`}
               <KeyRound className="size-3.5" />
             </button>
             <button

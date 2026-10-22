@@ -46,17 +46,40 @@ export const Route = createFileRoute("/applications/$id")({
     ],
   }),
   loader: ({ params }) => {
-    const app = getApplication(params.id);
-    if (!app) throw notFound();
-    return { app };
+    let app = getApplication(params.id);
+    if (!app && typeof window !== "undefined") {
+      try {
+        const saved = window.localStorage.getItem("verifyai-custom-apps");
+        if (saved) {
+          const list = JSON.parse(saved) as any[];
+          app = list.find((a) => a.id === params.id);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    return { app, appId: params.id };
   },
   component: AppReview,
 });
 
 function AppReview() {
-  const { app } = Route.useLoaderData();
-  const { role, decisionFor, logDecision } = useAppState();
-  const [activeDocId, setActiveDocId] = useState(app.docs[0].id);
+  const { app: loaderApp, appId } = Route.useLoaderData();
+  const { role, applications, decisionFor, logDecision } = useAppState();
+
+  const app = loaderApp || applications.find((a) => a.id === appId);
+  if (!app) {
+    return (
+      <div className="p-8 text-center">
+        <h2 className="text-lg font-bold text-foreground">Application Not Found</h2>
+        <p className="text-xs text-muted-foreground mt-1">
+          The requested application ID ({appId}) does not exist.
+        </p>
+      </div>
+    );
+  }
+
+  const [activeDocId, setActiveDocId] = useState(app.docs?.[0]?.id);
   const [activeEvidence, setActiveEvidence] = useState<EvidenceBox | undefined>();
   const [note, setNote] = useState("");
   const [logged, setLogged] = useState(false);
