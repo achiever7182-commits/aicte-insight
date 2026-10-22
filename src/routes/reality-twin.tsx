@@ -13,7 +13,7 @@ export const Route = createFileRoute("/reality-twin")({
       { name: "description", content: "Claimed vs observed: EXIF and sun-angle checks, floor-plan norms, satellite footprints and inspection priorities." },
       { property: "og:title", content: "Reality Twin — AICTE VerifyAI" },
       { property: "og:description", content: "Claimed vs observed infrastructure evidence — discrepancy for inspection, not accusation." },
-      { property: "og:type", content": "website" },
+      { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
