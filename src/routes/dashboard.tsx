@@ -440,7 +440,6 @@ function Dashboard() {
                     No applications matched your filter query.
                   </td>
                 </tr>
-<<<<<<< HEAD
               ) : (
                 filteredApps.map((a) => (
                   <tr key={a.id} className="border-b border-border/50 hover:bg-muted/40 transition">
