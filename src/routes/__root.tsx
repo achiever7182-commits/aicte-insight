@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
+  NavLink,
   createRootRouteWithContext,
   useRouter,
   HeadContent,
@@ -9,19 +10,38 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import {
+  LayoutDashboard,
+  FileSearch,
+  Network,
+  MapPinned,
+  MessageSquareText,
+  Gauge,
+  History,
+  ShieldCheck,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { AppProvider, useAppState } from "@/lib/store";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
+const NAV = [
+  { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/constellation", label: "Fraud Constellation", icon: Network },
+  { to: "/reality-twin", label: "Reality Twin", icon: MapPinned },
+  { to: "/copilot", label: "Officer Copilot", icon: MessageSquareText },
+  { to: "/benchmark", label: "Engine Benchmark", icon: Gauge },
+  { to: "/audit", label: "Audit Trail", icon: History },
+];
+
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen items-center justify-center px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">The page you're looking for doesn't exist or has been moved.</p>
         <div className="mt-6">
           <Link
             to="/"
@@ -43,14 +63,10 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen items-center justify-center px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
-        </p>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">This page didn't load</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Something went wrong on our end. You can try refreshing or head back home.</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -78,21 +94,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "AICTE VerifyAI — EoA Decision Support" },
+      { name: "description", content: "AI-powered validation of Extension of Approval applications with trust scoring, fraud constellation graph, Reality Twin and officer copilot." },
+      { name: "author", content: "VerifyAI Team" },
+      { property: "og:title", content: "AICTE VerifyAI" },
+      { property: "og:description", content: "Decision-support platform for AICTE Extension of Approval validation." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: appCss,
+        href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
   shellComponent: RootShell,
@@ -103,11 +121,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body className="min-h-screen antialiased">
         {children}
         <Scripts />
       </body>
@@ -115,13 +133,87 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function RoleSwitcher() {
+  const { role, setRole } = useAppState();
+  return (
+    <div className="flex rounded-lg border border-border bg-muted/60 p-0.5 text-xs">
+      {(["officer", "admin", "college"] as const).map((r) => (
+        <button
+          key={r}
+          onClick={() => setRole(r)}
+          className={cn(
+            "rounded-md px-2.5 py-1 font-medium capitalize transition-colors",
+            role === r ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {r}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function AppFrame({ children }: { children: ReactNode }) {
+  const { roleLabel } = useAppState();
+  return (
+    <div className="flex min-h-screen">
+      <aside className="fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-border bg-surface/80 backdrop-blur">
+        <Link to="/" className="flex items-center gap-3 px-5 py-5">
+          <span className="flex size-9 items-center justify-center rounded-xl bg-primary/15 text-primary">
+            <ShieldCheck className="size-5" />
+          </span>
+          <span>
+            <span className="block font-display text-sm font-bold leading-tight">AICTE VerifyAI</span>
+            <span className="block text-[10px] uppercase tracking-widest text-muted-foreground">EoA decision support</span>
+          </span>
+        </Link>
+        <nav className="mt-2 flex-1 space-y-1 px-3">
+          {NAV.map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                  isActive ? "bg-primary/12 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )
+              }
+            >
+              <Icon className="size-4" />
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+        <div className="space-y-3 border-t border-border p-4">
+          <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Viewing as · {roleLabel}</div>
+          <RoleSwitcher />
+        </div>
+      </aside>
+      <div className="ml-60 flex min-h-screen w-[calc(100%-15rem)] flex-col">
+        <div className="sticky top-0 z-20 border-b border-border bg-background/85 px-6 py-2 backdrop-blur">
+          <p className="text-[11px] text-muted-foreground">
+            <ShieldCheck className="mr-1.5 inline size-3.5 text-primary" />
+            AI output is decision support. Final decisions rest with the competent AICTE authority.
+          </p>
+        </div>
+        <main className="flex-1 px-6 py-6">{children}</main>
+        <footer className="border-t border-border px-6 py-3 text-[11px] text-muted-foreground">
+          AICTE VerifyAI · Prototype · All institutions, documents and persons shown are synthetic demo data.
+        </footer>
+      </div>
+    </div>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <AppProvider>
+        <AppFrame>
+          <Outlet />
+        </AppFrame>
+      </AppProvider>
     </QueryClientProvider>
   );
 }
