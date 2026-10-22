@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuditRouteImport } from './routes/audit'
+import { Route as BenchmarkRouteImport } from './routes/benchmark'
 import { Route as ConstellationRouteImport } from './routes/constellation'
 import { Route as CopilotRouteImport } from './routes/copilot'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -20,6 +22,16 @@ import { Route as ApplicationsIdRouteImport } from './routes/applications.$id'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuditRoute = AuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BenchmarkRoute = BenchmarkRouteImport.update({
+  id: '/benchmark',
+  path: '/benchmark',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConstellationRoute = ConstellationRouteImport.update({
@@ -55,6 +67,8 @@ const ApplicationsIdRoute = ApplicationsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/audit': typeof AuditRoute
+  '/benchmark': typeof BenchmarkRoute
   '/constellation': typeof ConstellationRoute
   '/copilot': typeof CopilotRoute
   '/dashboard': typeof DashboardRoute
@@ -64,6 +78,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/audit': typeof AuditRoute
+  '/benchmark': typeof BenchmarkRoute
   '/constellation': typeof ConstellationRoute
   '/copilot': typeof CopilotRoute
   '/dashboard': typeof DashboardRoute
@@ -74,6 +90,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/audit': typeof AuditRoute
+  '/benchmark': typeof BenchmarkRoute
   '/constellation': typeof ConstellationRoute
   '/copilot': typeof CopilotRoute
   '/dashboard': typeof DashboardRoute
@@ -85,6 +103,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/audit'
+    | '/benchmark'
     | '/constellation'
     | '/copilot'
     | '/dashboard'
@@ -94,6 +114,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/audit'
+    | '/benchmark'
     | '/constellation'
     | '/copilot'
     | '/dashboard'
@@ -103,6 +125,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/audit'
+    | '/benchmark'
     | '/constellation'
     | '/copilot'
     | '/dashboard'
@@ -113,6 +137,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuditRoute: typeof AuditRoute
+  BenchmarkRoute: typeof BenchmarkRoute
   ConstellationRoute: typeof ConstellationRoute
   CopilotRoute: typeof CopilotRoute
   DashboardRoute: typeof DashboardRoute
@@ -128,6 +154,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/audit': {
+      id: '/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/benchmark': {
+      id: '/benchmark'
+      path: '/benchmark'
+      fullPath: '/benchmark'
+      preLoaderRoute: typeof BenchmarkRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/constellation': {
@@ -177,6 +217,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuditRoute: AuditRoute,
+  BenchmarkRoute: BenchmarkRoute,
   ConstellationRoute: ConstellationRoute,
   CopilotRoute: CopilotRoute,
   DashboardRoute: DashboardRoute,

@@ -11,7 +11,7 @@ if(typeof window!=='undefined'){
 export default function CameraRig({shake=true}:{shake?:boolean}){
   const {camera}=useThree();
   useFrame(({clock})=>{
-    const p=progress.value,t=clock.elapsedTime;
+    const p=Math.min(0.9999, Math.max(0, progress.value)),t=clock.elapsedTime;
     PATH.getPointAt(p,pos);
     PATH.getPointAt(p,look);
     look.set(0, 1.4, look.z - 7.5);
@@ -19,4 +19,5 @@ export default function CameraRig({shake=true}:{shake?:boolean}){
     camera.position.lerp(pos.add(new THREE.Vector3(mouse.x*.3+Math.sin(t*9)*s,-mouse.y*.2+Math.cos(t*7)*s,0)),.12);
     camera.lookAt(look);
   });
-  return null;}
+  return null;
+}
