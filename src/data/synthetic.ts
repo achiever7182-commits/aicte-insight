@@ -43,6 +43,9 @@ const rng = mulberry32(0xa17ce);
 const pick = <T,>(arr: T[]): T => arr[Math.floor(rng() * arr.length)];
 const rint = (min: number, max: number) => min + Math.floor(rng() * (max - min + 1));
 
+/** college id -> fingerprint ids held by that college */
+const fingerprintByCollege = new Map<string, string[]>();
+
 // ---------------------------------------------------------------------------
 // Colleges
 // ---------------------------------------------------------------------------
@@ -174,12 +177,6 @@ PAIR_ADDRESS.forEach((cid) => {
   fingerprintByCollege.set(cid, [...(fingerprintByCollege.get(cid) ?? []), addr.id]);
 });
 
-function fingerprintByCollegeRef() {
-  return fingerprintByCollege;
-}
-// (declared before use above — hoisted map)
-var fingerprintByCollege = new Map<string, string[]>();
-void fingerprintByCollegeRef;
 
 // Per-college ordinary fingerprints (unique stamps, pdf metadata)
 colleges.forEach((c) => {
